@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="3.4" type="plugin" group="content" method="upgrade">
+	<name>plg_content_sfdc</name>
+	<author>Arlen P Walker</author>
+	<creationDate>February 2016</creationDate>
+	<copyright>Copyright (C) 2106 PKWARE, Inc. All rights reserved.</copyright>
+	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+	<authorEmail>arlen.walker@pkware.com</authorEmail>
+	<authorUrl>www.pkware.com</authorUrl>
+	<version>0.2.0</version>
+	<description>PLG_CONTENT_SFDC_XML_DESCRIPTION</description>
+	<files>
+		<filename plugin="sfdc">sfdc.php</filename>
+		<filename>index.html</filename>
+	</files>
+	<languages>
+		<language tag="en-GB">language/en-GB.plg_content_sfdc.ini</language>
+		<language tag="en-GB">language/en-GB.plg_content_sfdc.sys.ini</language>
+	</languages>
+	<config>
+		<fields name="params">
+			<fieldset name="basic">
+				<field name="endpoint" type="text"
+					description="JFIELD_PLG_SFDC_ENDPOINT_DESC"
+					label="JFIELD_PLG_SFDC_ENDPOINT_LABEL"
+					size="5"
+				/>
+				<field name="orgid" type="text"
+					description="JFIELD_PLG_SFDC_ORGID_DESC"
+					label="JFIELD_PLG_SFDC_ORGID_LABEL"
+					size="5"
+				/>
+				<field name="record_type" type="text"
+					description="JFIELD_PLG_SFDC_RECORDTYPE_DESC"
+					label="JFIELD_PLG_SFDC_RECORDTYPE_LABEL"
+				>
+				</field>
+				<field name="context" type="textarea"
+					description="JFIELD_PLG_SFDC_CONTEXT_DESC"
+					label="JFIELD_PLG_SFDC_CONTEXT_LABEL"
+				>
+				</field>
+			</fieldset>
+		</fields>
+	</config>
+</extension>
