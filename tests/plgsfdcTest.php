@@ -80,6 +80,24 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 	 *	number of times with the correct arguments, and return with the HTTP code
 	 *	for success: 200 (integer).
 	 */
+	public function testParamsSentWithDefaultSfdc()
+	{
+		$this->plugin->expects($this->once())
+     		->method('sendData')
+     		->with("endpoint", $this->_expectedFormVariablesDefaultSfdc())
+     		->will($this->returnValue(200));
+
+        $this->assertTrue($this->plugin->onContentBeforeSave(
+        		'fred.view',
+        		$this->_dataTableWithNullSfdcCode(),
+        		true
+        ));
+	}
+	/**
+	 *	Sets the conditions for the sendData test double to be called the correct
+	 *	number of times with the correct arguments, and return with the HTTP code
+	 *	for success: 200 (integer).
+	 */
 	public function testParamsSentWithGoodReturn()
 	{
 		$this->plugin->expects($this->once())
@@ -90,6 +108,24 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->plugin->onContentBeforeSave(
         		'fred.view',
         		$this->_dataTable(),
+        		true
+        ));
+	}
+	/**
+	 *	Sets the conditions for the sendData test double to be called the correct
+	 *	number of times with the correct arguments, and return with the HTTP code
+	 *	for success: 200 (integer).
+	 */
+	public function testParamsSentWithTooLomgRecordtype()
+	{
+		$this->plugin->expects($this->once())
+     		->method('sendData')
+     		->with("endpoint", $this->_expectedFormVariablesShortened())
+     		->will($this->returnValue(200));
+
+        $this->assertTrue($this->plugin->onContentBeforeSave(
+        		'fred.view',
+        		$this->_dataTableTooLong(),
         		true
         ));
 	}
@@ -118,6 +154,39 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 	{
 		$table = new stdClass;
 		$table->name = "name";
+		$table->sfdc_code = "11223344";
+		$table->email = "email";
+		$table->phone = "phone";
+		$table->company = "company";
+		$table->subject = "subject";
+		$table->description = "description";
+		
+		return $table;
+	}
+	/**
+	 *	Builds a test double for the data from the request form.
+	 */
+	private function _dataTableTooLong()
+	{
+		$table = new stdClass;
+		$table->name = "name";
+		$table->sfdc_code = "123456789012345678";
+		$table->email = "email";
+		$table->phone = "phone";
+		$table->company = "company";
+		$table->subject = "subject";
+		$table->description = "description";
+		
+		return $table;
+	}
+	/**
+	 *	Builds a test double for the data from the request form.
+	 */
+	private function _dataTableWithNullSfdcCode()
+	{
+		$table = new stdClass;
+		$table->name = "name";
+		$table->sfdc_code = null;
 		$table->email = "email";
 		$table->phone = "phone";
 		$table->company = "company";
@@ -127,6 +196,38 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 		return $table;
 	}
 	private function _expectedFormVariables()
+	{
+		$table = $this->_dataTable();
+		
+		return array(
+	 		'orgid' => 'orgid',
+	 		'recordType' => '11223344',
+	 		'name' => $table->name,
+	 		'email' => $table->email,
+	 		'phone' => $table->phone,
+	 		'company' => $table->company,
+	 		'subject' => $table->subject,
+	 		'description' => $table->description,
+	 		'c_external' => "1"
+	 	);
+	}
+	private function _expectedFormVariablesShortened()
+	{
+		$table = $this->_dataTable();
+		
+		return array(
+	 		'orgid' => 'orgid',
+	 		'recordType' => '123456789012345',
+	 		'name' => $table->name,
+	 		'email' => $table->email,
+	 		'phone' => $table->phone,
+	 		'company' => $table->company,
+	 		'subject' => $table->subject,
+	 		'description' => $table->description,
+	 		'c_external' => "1"
+	 	);
+	}
+	private function _expectedFormVariablesDefaultSfdc()
 	{
 		$table = $this->_dataTable();
 		

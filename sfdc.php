@@ -25,6 +25,9 @@ class PlgContentSfdc extends JPlugin
 	 {
 	 	$result = true;
 	 	$form_vars = Array();
+	 	$recordType = empty($table->sfdc_code) ? $this->params->get('record_type') :
+	 												$table->sfdc_code;
+
 	 	
 	 	if ($isNew && 
 	 		in_array($context, preg_split(
@@ -37,7 +40,7 @@ class PlgContentSfdc extends JPlugin
 	 		$result = false;
 	
 	 		$form_vars['orgid'] = $this->params->get('orgid');
-	 		$form_vars['recordType'] = $this->params->get('record_type');
+	 		$form_vars['recordType'] = substr($recordType, 0, 15);
 	 		$form_vars['name'] = $table->name;
 	 		$form_vars['email'] = $table->email;
 	 		$form_vars['phone'] = $table->phone;

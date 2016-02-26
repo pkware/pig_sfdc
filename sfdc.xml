@@ -7,7 +7,7 @@
 	<license>GNU General Public License version 2 or later; see LICENSE.txt</license>
 	<authorEmail>arlen.walker@pkware.com</authorEmail>
 	<authorUrl>www.pkware.com</authorUrl>
-	<version>0.2.0</version>
+	<version>0.3.0</version>
 	<description>PLG_CONTENT_SFDC_XML_DESCRIPTION</description>
 	<files>
 		<filename plugin="sfdc">sfdc.php</filename>
