@@ -12,6 +12,13 @@ class PlgContentSfdc extends JPlugin
 	 * @since  3.1
 	 */
 	protected $autoloadLanguage = true;
+	/**
+	 * Holds the data to be sent.
+	 *
+	 * @var    array
+	 * @since  3.1
+	 */
+	protected $formVars = array();
 
 	/**
 	 * Take the data from a new request form and curl it to Salesforce.com to
@@ -23,11 +30,11 @@ class PlgContentSfdc extends JPlugin
 	 */
 	 function onContentBeforeSave($context, $table, $isNew)
 	 {
-	 	$result = true;
-	 	$form_vars = Array();
-	 	$recordType = empty($table->sfdc_code) ? $this->params->get('record_type') :
+	 	$mappings        = $this->_setMappings();
+	 	$result          = true;
+	 	$this->formVars  = Array();
+	 	$recordType      = empty($table->sfdc_code) ? $this->params->get('record_type') :
 	 												$table->sfdc_code;
-
 	 	
 	 	if ($isNew && 
 	 		in_array($context, preg_split(
@@ -39,17 +46,20 @@ class PlgContentSfdc extends JPlugin
 	 	) {
 	 		$result = false;
 	
-	 		$form_vars['orgid'] = $this->params->get('orgid');
-	 		$form_vars['recordType'] = substr($recordType, 0, 15);
-	 		$form_vars['name'] = $table->name;
-	 		$form_vars['email'] = $table->email;
-	 		$form_vars['phone'] = $table->phone;
-	 		$form_vars['company'] = $table->company;
-	 		$form_vars['subject'] = $table->subject;
-	 		$form_vars['description'] = $table->description;
-	 		$form_vars['c_external'] = "1";
+	 		$this->formVars['c_external'] = "1";
+	 		$this->formVars['orgid'] = $this->params->get('orgid');
+	 		$this->formVars['recordType'] = substr($recordType, 0, 15);
+
+			foreach ($mappings as $sourceDest)
+			{
+				$source = $sourceDest[0];
+				if (isset($table->$source))
+				{
+					$this->_setSendVariable($sourceDest[1], $table->$source);
+				}
+			}
 	 		
-	 		$response = $this->sendData($this->params->get('endpoint'), $form_vars);
+	 		$response = $this->sendData($this->params->get('endpoint'));
 	 		$result = ($response === 200);
 	 	}
 
@@ -57,17 +67,53 @@ class PlgContentSfdc extends JPlugin
 	}
 	/**
 	 *	Send the data the SFDC web2case endpoint
+	 *
+	 * @param	string	$targetURL	The URL to send the data to
 	 */
-	function sendData( $targetURL, $form_vars )
+	function sendData( $targetURL )
 	{
 		$sender = curl_init();
 		curl_setopt($sender, CURLOPT_URL, $targetURL);
 		curl_setopt($sender, CURLOPT_POST, true);
-		$fields_string = http_build_query($form_vars);
+		$fields_string = http_build_query($this->formVars);
 		curl_setopt($sender, CURLOPT_POSTFIELDS, $fields_string);
 		
 		curl_exec($sender);
 
 		return curl_getinfo($sender, CURLINFO_HTTP_CODE);
+	}
+	/**
+	 * Build the field mappings array
+	 *
+	 * @return	array	Array linking table attributes to form_vars
+	 */
+	protected function _setMappings()
+	{
+		$mappings = array();
+	
+		$pairs = preg_split(
+			"/[\s,]+/",
+			$this->params->get('field_mappings'),
+			NULL,
+			PREG_SPLIT_NO_EMPTY
+		);
+		foreach ($pairs as $pair)
+		{
+			$sourceDest = explode(":", $pair, 2);
+			$mappings[] = $sourceDest;
+		}
+		return $mappings;
+	}
+	/**
+	 * Sets the forms variable only if the value is not null.
+	 *
+	 * @return	array	Array form variables
+	 */
+	protected function _setSendVariable($key, $value=null)
+	{
+		if (!is_null($value) && !isset($this->formVars[$key]))
+		{
+			$this->formVars[$key] = $value;
+		}
 	}
 }

@@ -21,10 +21,14 @@ class JPlugin
  */
 class Fetcher
 {
+	public $map;
+	
 	public function get($term)
 	{
 		if ($term == 'context') {
 			return "fred.view, \r\nsam.view";
+		} else if ($term == 'field_mappings') {
+			return $this->map;
 		} else {
 			return $term;
 		}
@@ -58,6 +62,8 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 			->setConstructorArgs(array(new Fetcher))
             ->setMethods(array('sendData'))
             ->getMock();
+        
+        $this->plugin->params->map = $this->_csmap();
      }
 	/**
 	 *	Sets the a bad context, which ensures the mocked method should not be called.
@@ -116,6 +122,24 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 	 *	number of times with the correct arguments, and return with the HTTP code
 	 *	for success: 200 (integer).
 	 */
+	public function testCustServiceParamsSentWithGoodReturn()
+	{
+		$this->plugin->expects($this->once())
+     		->method('sendData')
+     		->with("endpoint", $this->_expectedCustFormVariables())
+     		->will($this->returnValue(200));
+
+        $this->assertTrue($this->plugin->onContentBeforeSave(
+        		'fred.view',
+        		$this->_dataTableCust(),
+        		true
+        ));
+	}
+	/**
+	 *	Sets the conditions for the sendData test double to be called the correct
+	 *	number of times with the correct arguments, and return with the HTTP code
+	 *	for success: 200 (integer).
+	 */
 	public function testParamsSentWithTooLomgRecordtype()
 	{
 		$this->plugin->expects($this->once())
@@ -164,6 +188,26 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 		return $table;
 	}
 	/**
+	 *	Builds a test double for the data from the cust service request form.
+	 */
+	private function _dataTableCust()
+	{
+		$table = new stdClass;
+		$table->name = "name";
+		$table->sfdc_code = "11223344";
+		$table->email = "email";
+		$table->phone = "phone";
+		$table->company = "company";
+		$table->description = "description";
+		$table->request = "License Key Request";
+		$table->product = "SecureZIP";
+		$table->prodversion = "anything";
+		$table->platform = "Windows";
+		$table->cpu = "Much Text";
+		
+		return $table;
+	}
+	/**
 	 *	Builds a test double for the data from the request form.
 	 */
 	private function _dataTableTooLong()
@@ -194,6 +238,27 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 		$table->description = "description";
 		
 		return $table;
+	}
+	private function _expectedCustFormVariables()
+	{
+		$table = $this->_dataTableCust();
+		
+		return array(
+	 		'orgid' => 'orgid',
+	 		'recordType' => '11223344',
+	 		'name' => $table->name,
+	 		'email' => $table->email,
+	 		'phone' => $table->phone,
+	 		'company' => $table->company,
+	 		'subject' => $table->request,
+	 		'description' => $table->description,
+	 		'Product__c' => $table->product,
+	 		'Product_Family__c' => $table->product,
+	 		'Version__c' => $table->prodversion,
+	 		'Platform__c' => $table->platform,
+	 		'License_Report__c' => $table->cpu,
+	 		'c_external' => "1"
+	 	);
 	}
 	private function _expectedFormVariables()
 	{
@@ -242,5 +307,23 @@ class plgsfdcTest extends \PHPUnit_Framework_TestCase
 	 		'description' => $table->description,
 	 		'c_external' => "1"
 	 	);
+	}
+	private function _csMap()
+	{
+		return <<<EOT
+name:name,
+email:email,
+phone:phone,
+company:company,
+subject:subject,
+description:description,
+request:subject,
+product:Product__c,
+product:Product_Family__c,
+platform:Platform__c,
+prodversion:Version__c,
+cpu:License_Report__c
+EOT
+;
 	}
 }
